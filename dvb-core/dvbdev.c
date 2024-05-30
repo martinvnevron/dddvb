@@ -29,6 +29,14 @@
 #include <media/tuner.h>
 #endif
 
+#ifndef RHEL_RELEASE_CODE
+#define RHEL_RELEASE_CODE 0
+#endif
+
+#ifndef RHEL_RELEASE_VERSION
+#define RHEL_RELEASE_VERSION(A,B) 1
+#endif
+
 static DEFINE_MUTEX(dvbdev_mutex);
 static LIST_HEAD(dvbdevfops_list);
 static int dvbdev_debug;
@@ -70,7 +78,7 @@ static const char * const dnames[] = {
 static const u8 minor_type[] = {
        [DVB_DEVICE_VIDEO]      = 0,
        [DVB_DEVICE_AUDIO]      = 1,
-       [DVB_DEVICE_SEC]        = 2, 
+       [DVB_DEVICE_SEC]        = 2,
        [DVB_DEVICE_FRONTEND]   = 3,
        [DVB_DEVICE_DEMUX]      = 4,
        [DVB_DEVICE_DVR]        = 5,
@@ -784,7 +792,7 @@ int dvb_create_media_graph(struct dvb_adapter *adap,
 #else
 		pad_source = TUNER_PAD_OUTPUT;
 #endif
-		
+
 		ret = media_create_pad_links(mdev,
 					     MEDIA_ENT_F_TUNER,
 					     tuner, pad_source,
@@ -1088,7 +1096,10 @@ EXPORT_SYMBOL_GPL(dvb_module_release);
 #endif
 #endif
 
-#if (KERNEL_VERSION(6, 2, 0) > LINUX_VERSION_CODE)
+#if \
+	KERNEL_VERSION(6, 2, 0) > LINUX_VERSION_CODE && \
+	RHEL_RELEASE_VERSION(9, 3) > RHEL_RELEASE_CODE && \
+	RHEL_RELEASE_VERSION(8, 9) > RHEL_RELEASE_CODE
 static int dvb_uevent(struct device *dev, struct kobj_uevent_env *env)
 #else
 static int dvb_uevent(const struct device *dev, struct kobj_uevent_env *env)
@@ -1102,7 +1113,10 @@ static int dvb_uevent(const struct device *dev, struct kobj_uevent_env *env)
 	return 0;
 }
 
-#if (KERNEL_VERSION(6, 2, 0) > LINUX_VERSION_CODE)
+#if \
+	KERNEL_VERSION(6, 2, 0) > LINUX_VERSION_CODE && \
+	RHEL_RELEASE_VERSION(9, 3) > RHEL_RELEASE_CODE && \
+	RHEL_RELEASE_VERSION(8, 9) > RHEL_RELEASE_CODE
 static char *dvb_devnode(struct device *dev, umode_t *mode)
 #else
 static char *dvb_devnode(const struct device *dev, umode_t *mode)
@@ -1133,7 +1147,9 @@ static int __init init_dvbdev(void)
 		goto error;
 	}
 
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(6,4,0))
+#if \
+	LINUX_VERSION_CODE < KERNEL_VERSION(6,4,0) && \
+	RHEL_RELEASE_CODE < RHEL_RELEASE_VERSION(9,3)
 	dvb_class = class_create(THIS_MODULE, "dvb");
 #else
 	dvb_class = class_create("dvb");

@@ -27,6 +27,14 @@
 #include "ddbridge-ioctl.h"
 #include <media/dvb_net.h>
 
+#ifndef RHEL_RELEASE_CODE
+#define RHEL_RELEASE_CODE 0
+#endif
+
+#ifndef RHEL_RELEASE_VERSION
+#define RHEL_RELEASE_VERSION(A,B) 1
+#endif
+
 struct workqueue_struct *ddb_wq;
 
 static DEFINE_MUTEX(redirect_lock); /* lock for redirect */
@@ -114,7 +122,7 @@ int ddb_dvb_usercopy(struct file *file,
 	void    *mbuf = NULL;
 	void    *parg = NULL;
 	int     err  = -EINVAL;
-	
+
 	/*  Copy arguments into temp kernel buffer  */
 	switch (_IOC_DIR(cmd)) {
 	case _IOC_NONE:
@@ -616,7 +624,7 @@ static void update_loss(struct ddb_dma *dma)
 	struct ddb_input *input = (struct ddb_input *)dma->io;
 	u32 packet_loss = dma->packet_loss;
 	u32 cur_counter = ddbreadl(input->port->dev, TS_STAT(input)) & 0xffff;
-	
+
 	if (cur_counter < (packet_loss & 0xffff))
 		packet_loss += 0x10000;
 	packet_loss = ((packet_loss & 0xffff0000) | cur_counter);
@@ -2717,7 +2725,7 @@ static void ddb_ports_init(struct ddb *dev)
 			}
 			if (port->class == DDB_PORT_NONE)
 				continue;
-			
+
 			switch (info->type) {
 			case DDB_OCTONET:
 			case DDB_OCTOPUS:
@@ -3483,7 +3491,10 @@ static const struct file_operations ddb_fops = {
 #if (KERNEL_VERSION(3, 4, 0) > LINUX_VERSION_CODE)
 static char *ddb_devnode(struct device *device, mode_t *mode)
 #else
-#if (KERNEL_VERSION(6, 2, 0) > LINUX_VERSION_CODE)
+#if \
+	KERNEL_VERSION(6, 2, 0) > LINUX_VERSION_CODE && \
+	RHEL_RELEASE_VERSION(9, 3) > RHEL_RELEASE_CODE && \
+	RHEL_RELEASE_VERSION(8, 9) > RHEL_RELEASE_CODE
 static char *ddb_devnode(struct device *device, umode_t *mode)
 #else
 static char *ddb_devnode(const struct device *device, umode_t *mode)
@@ -4064,7 +4075,10 @@ static struct device_attribute ddb_attrs_fanspeed[] = {
 
 static struct class ddb_class = {
 	.name		= "ddbridge",
-#if (KERNEL_VERSION(6, 4, 0) > LINUX_VERSION_CODE)
+#if \
+	KERNEL_VERSION(6, 4, 0) > LINUX_VERSION_CODE && \
+	RHEL_RELEASE_VERSION(9, 3) > RHEL_RELEASE_CODE && \
+	RHEL_RELEASE_VERSION(8, 9) > RHEL_RELEASE_CODE
 	.owner          = THIS_MODULE,
 #endif
 	.devnode        = ddb_devnode,

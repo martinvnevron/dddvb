@@ -16,7 +16,17 @@
  * GNU Lesser General Public License for more details.
  */
 
-#if (KERNEL_VERSION(6, 6, 0) > LINUX_VERSION_CODE)
+#ifndef RHEL_RELEASE_CODE
+#define RHEL_RELEASE_CODE 0
+#endif
+
+#ifndef RHEL_RELEASE_VERSION
+#define RHEL_RELEASE_VERSION(A,B) 1
+#endif
+
+#if \
+	KERNEL_VERSION(6, 6, 0) > LINUX_VERSION_CODE && \
+	RHEL_RELEASE_VERSION(9, 3) > RHEL_RELEASE_CODE
 #include <linux/bitops.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
